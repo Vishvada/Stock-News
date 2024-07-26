@@ -1,0 +1,66 @@
+:root{
+    --primary-color:#0077e5;
+    --primary-color-faded:#064a8a;
+    --on-hover-color:gray;
+}
+
+.button{
+    font-size: 14px;
+    font-weight:600;
+    padding: 0;
+    padding-inline: 15px;
+    padding-block:4px ;
+    margin-inline:1rem;
+    margin-block:0.5rem;
+    border-radius: 2px;
+    border: 2px solid var(--primary-color);
+}
+
+
+.filled{
+    background-color: var(--primary-color);
+    color:white;
+    overflow: hidden;
+}
+
+.outline{
+    background-color: transparent;
+    color: var(--primary-color);
+}
+
+.fill-color{
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: color 0.4s;
+    z-index: 1;    
+}
+
+.fill-color::before{
+    content:'';
+    position: absolute;
+    left:0;
+    width:0;
+    background-color: white;
+    transition: width 0.4s ease;
+    top:0;
+    height: 100%;
+    z-index: -1;
+}
+
+.fill-color:hover::before{
+    width:100%;
+}
+
+.fill-color:hover{
+    color: var(--on-hover-color);
+}
+
+.fade-color:hover{
+    background-color: var(--primary-color-faded);    
+    border-color: var(--primary-color-faded);
+}
+
+
+
+

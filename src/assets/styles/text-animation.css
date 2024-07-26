@@ -1,0 +1,30 @@
+:root{
+    --main-primary-background-color:#141a22;
+    --main-primary-entity-color:#0077e5;
+}
+
+.animate-text{
+    position: relative;
+    font-weight: 100;
+    color: white;
+    margin-inline:1rem;
+    margin-block:0.5rem;
+}
+.animate-text::before{
+    position: absolute;
+    content: attr(data-text);
+    background-color: var(--main-primary-background-color);
+    color: var(--main-primary-entity-color);
+    transition:width 0.4s;
+    width:0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-weight: 100;
+}
+.animate-text:hover{
+    color:white
+}
+.animate-text:hover::before{
+    width:100%;
+    z-index: 5;
+}
