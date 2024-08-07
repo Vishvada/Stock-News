@@ -146,8 +146,8 @@ export async function getUserStocks(email) {
   
 	  const stockIds = userResult.rows[0].preferred_stocks;
   
-	  if (!stockIds.length) {
-		return { error: false, message: [] };
+	  if (stockIds===null||!stockIds.length) {
+		  return { error: false, message: [] };
 	  }
   
 	  const stocksResult = await db.query(
