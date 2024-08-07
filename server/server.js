@@ -7,11 +7,14 @@ import session from "express-session";
 import { url } from "./utils/constants.js";
 import { addUser, checkPassword, getUser, getUserStocks, getAllStocks, addUserStocks } from "./queries.js";
 import news from "./utils/scraper.js";
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const app = express();
 const port = 3000;
-// app.use(cors({origin: "http://localhost:5173",
-//   credentials: true}))
+app.use(cors({origin: process.env.CLIENT_URL,
+  credentials: true}))
 
 
 app.use(bodyParser.json());
@@ -39,7 +42,7 @@ app.get('/all-stocks', async (req, res) => {
       res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while fetching stocks'));
     }
   } else {
-    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+    res.status(url.FORBIDDEN).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
   }
 });
 
@@ -58,7 +61,7 @@ app.post('/add-stocks', async (req, res) => {
       res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while adding stocks'));
     }
   } else {
-    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+    res.status(url.FORBIDDEN).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
   }
 });
 
@@ -81,7 +84,7 @@ app.get('/stocks', async (req, res) => {
       res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while fetching stocks'));
     }
   } else {
-    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+    res.status(url.FORBIDDEN).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
   }
 });
 
@@ -108,7 +111,7 @@ app.post('/signup', async (req, res) => {
   try {
     const result = await addUser(name, email, password);
     if (result.error) {
-      return res.status(200).json(createResponse(url.FORBIDDEN, true, result.message));
+      return res.status(url.FORBIDDEN).json(createResponse(url.FORBIDDEN, true, result.message));
     }
     
     req.login({ email, password }, (err) => {

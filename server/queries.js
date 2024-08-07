@@ -1,55 +1,83 @@
-import pg from "pg"; 
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import dotenv from 'dotenv'
-import validator from 'email-validator'
+import dotenv from "dotenv";
+import validator from "email-validator";
 
 const saltRounds = 10;
 
-dotenv.config()
+dotenv.config();
 
-const db = new pg.Client({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-})
+const prisma = new PrismaClient();
 
-db.connect().then(() => {
-  console.log('DB connected');
-}).catch((err) => {
-  console.error('DB connection error:', err)
-})
+async function main() {
+  try {
+    await prisma.$connect();
+    console.log("DB connected");
+  } catch (error) {
+    console.error("DB connection error:", error);
+  }
+}
+
+main().catch((error) => {
+  console.error("Error in main:", error);
+}).finally(async () => {
+  await prisma.$disconnect();
+});
+
+function validateName(name) {
+  return name && name.trim() !== "";
+}
+
+function validateEmail(email) {
+  return email && validator.validate(email);
+}
+
+function validatePassword(password, minLength = 8, maxLength = 100) {
+  return password && password.length >= minLength && password.length <= maxLength;
+}
 
 export async function addUser(name, email, password) {
-  const response = { error: false, message: '' };
-  
-  if (!name || !email || !password || name.trim() === '' || email.trim() === '' || password.trim() === '') {
+  const response = { error: false, message: "" };
+
+  if (!validateName(name)){
     response.error = true;
-    response.message = "All fields are required.";
+    response.message = "Name is required.";
     return response;
   }
 
-  if(!validator.validate(email)){
-    response.error=true;
-    response.message='Invalid email address,check again';
+  if (!validateEmail(email)) {
+    response.error = true;
+    response.message = "Invalid email address, check again.";
+    return response;
+  }
+
+  if (!validatePassword(password)) {
+    response.error = true;
+    response.message = "Password must be between 8 and 100 characters.";
     return response;
   }
 
   try {
-    const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    
-    if (checkResult.rows.length > 0) {
+    const checkResult = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (checkResult) {
       response.error = true;
       response.message = "Email already exists. Try logging in.";
     } else {
       const hash = await bcrypt.hash(password, saltRounds);
-      const insertResult = await db.query(
-        "INSERT INTO users(name, email, password) VALUES ($1, $2, $3)",
-        [name.trim(), email.trim(), hash]
-      );
+      const insertResult = await prisma.user.create({
+        data: {
+          name: name.trim(),
+          email: email.trim(),
+          password: hash,
+        },
+      });
 
-      if (insertResult.rowCount > 0) {
+      if (insertResult) {
         response.message = "User account created successfully.";
       } else {
         response.error = true;
@@ -66,24 +94,25 @@ export async function addUser(name, email, password) {
 }
 
 export async function checkPassword(email, loginPassword) {
-  const response = { error: false, message: '' };
+  const response = { error: false, message: "" };
 
   try {
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    
-    if (result.rows.length > 0) {
-      const user = result.rows[0];
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if(user){
       const isMatch = await bcrypt.compare(loginPassword, user.password);
-      
-      if (isMatch) {
-        response.message = "Logged in successfully.";
+      if(isMatch){
+        response.message = "Password is correct";
       } else {
         response.error = true;
-        response.message = "Email and password do not match";
+        response.message = "Password is incorrect";
       }
     } else {
-      response.error = true;
-      response.message = "User doesn't exist";
+      
     }
   } catch (err) {
     console.error("Error in checkPassword:", err);
@@ -96,15 +125,18 @@ export async function checkPassword(email, loginPassword) {
 
 export async function getUser(email) {
   try {
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length > 0) {
-      const user = result.rows[0];
-      // Don't send the password hash to the client
-      delete user.password;
-      return user;
-    } else {
-      return null;
-    }
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        preferred_stocks: true
+        // Exclude the password field
+      },
+    });
+
+    return user || null;
   } catch (err) {
     console.error("Error in getUser:", err);
     throw err;
@@ -112,90 +144,94 @@ export async function getUser(email) {
 }
 
 export async function addStock(stockName) {
-	try {
-    let result=await db.query(`SELECT * from stocks where stock = $1`,[stockName]);
-    if(result.rowCount>0){
+  try {
+    const existingStock = await prisma.stock.findUnique({
+      where: { symbol: stockName }
+    });
+
+    if (existingStock) {
       return;
     }
-		await db.query(
-			"INSERT INTO stocks (stock) VALUES ($1)",
-			[stockName],
-			(err, result) => {
-				if (result) {
-					console.log(`Succesfully added stock ${stockName}`);
-				} else {
-					console.error(err.message);
-				}
-			}
-		);
-	} catch (error) {
-		console.error(error.message);
-	}
+
+    const newStock = await prisma.stock.create({
+      data: { symbol: stockName }
+    });
+
+    if (newStock) {
+      console.log(`Successfully added stock ${stockName}`);
+    } else {
+      console.error("Failed to add stock");
+    }
+  } catch (error) {
+    console.error("Error in addStock:", error.message);
+  }
 }
 
+
 export async function getUserStocks(email) {
-	try {
-	  const userResult = await db.query(
-		"SELECT preferred_stocks FROM users WHERE email = $1",
-		[email]
-	  );
-  
-	  if (!userResult.rows.length) {
-		return { error: true, message: "User not found" };
-	  }
-  
-	  const stockIds = userResult.rows[0].preferred_stocks;
-  
-	  if (!stockIds.length) {
-		return { error: false, message: [] };
-	  }
-  
-	  const stocksResult = await db.query(
-		"SELECT stock FROM stocks WHERE id = ANY($1)",
-		[stockIds]
-	  );
-  
-	  const stocks = stocksResult.rows.map(row => row.stock);
-  
-	  return { error: false, message: stocks };
-	} catch (error) {
-	  console.error("Error in getUserStocks:", error);
-	  return { error: true, message: error.message };
-	}
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { preferred_stocks: true }
+    });
+
+    if (!user) {
+      return { error: true, message: "User not found" };
+    }
+
+    const stockIds = user.preferred_stocks;
+
+    if (!stockIds.length) {
+      return { error: false, message: [] };
+    }
+
+    const stocks = await prisma.stock.findMany({
+      where: { id: { in: stockIds } },
+      select: { symbol: true }
+    });
+
+    return { error: false, message: stocks.map(stock => stock.symbol) };
+  } catch (error) {
+    console.error("Error in getUserStocks:", error);
+    return { error: true, message: error.message };
   }
-  // ... (previous imports and setup remain the same)
+}
 
 export async function getAllStocks() {
   try {
-    const result = await db.query("SELECT id, stock FROM stocks");
-    return { error: false, message: result.rows };
+    const stocks = await prisma.stock.findMany({
+      select: {
+        id: true,
+        symbol: true
+      }
+    });
+    return { error: false, message: stocks };
   } catch (err) {
     console.error("Error in getAllStocks:", err);
     return { error: true, message: err.message };
   }
 }
 
+
 export async function addUserStocks(email, stockIds) {
   try {
-    const userResult = await db.query(
-      "SELECT id, preferred_stocks FROM users WHERE email = $1",
-      [email]
-    );
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, preferred_stocks: true }
+    });
 
-    if (!userResult.rows.length) {
+    if (!user) {
       return { error: true, message: "User not found" };
     }
 
-    const userId = userResult.rows[0].id;
-    let preferredStocks = userResult.rows[0].preferred_stocks || [];
-
-    // Add new stock IDs to the user's preferred stocks
+    let preferredStocks = user.preferred_stocks || [];
+    
     preferredStocks = [...new Set([...preferredStocks, ...stockIds])];
 
-    await db.query(
-      "UPDATE users SET preferred_stocks = $1 WHERE id = $2",
-      [preferredStocks, userId]
-    );
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { preferred_stocks: preferredStocks }
+    });
 
     return { error: false, message: "Stocks added successfully" };
   } catch (error) {
