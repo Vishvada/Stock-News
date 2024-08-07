@@ -1,11 +1,20 @@
 import React,{Component} from 'react';
-import '../assets/styles/button.css'
+import '../assets/styles/button.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function Button(props){
-    // const [isHover,setIsHover]=useState(false);
-    // console.log(props.name)
+    const navigate = useNavigate();
+
+    // to navigate incase of a page change
+    // to property is the same as the one used in Link element of 'react-router-dom'
+
+    const handleClick = () => {
+        if (props.to!==null) {
+            navigate(props.to);
+        }
+    };
 
     return(
-        <div className={props.classes+' button'} onClick={props.action}>{props.name}</div>
+        <button className={props.classes+' button'} onClick={handleClick}>{props.name}</button>
     )
 }

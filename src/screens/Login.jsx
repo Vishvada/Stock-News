@@ -1,172 +1,10 @@
-// import React, { useState } from 'react';
-// import { 
-//   ThemeProvider, createTheme, 
-//   CssBaseline, Container, Box, 
-//   Typography, TextField, Button, 
-//   Link, Paper, InputAdornment
-// } from '@mui/material';
-// import { Email, Lock } from '@mui/icons-material';
-
-// const darkTheme = createTheme({
-//   palette: {
-//     mode: 'dark',
-//     primary: {
-//       main: '#0077e5',
-//     },
-//     background: {
-//       default: '#1a1a2e',
-//       paper: '#16213e',
-//     },
-//   },
-//   typography: {
-//     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-//     h4: {
-//       fontWeight: 700,
-//     },
-//   },
-//   components: {
-//     MuiButton: {
-//       styleOverrides: {
-//         root: {
-//           borderRadius: 8,
-//           textTransform: 'none',
-//           fontSize: '1rem',
-//           fontWeight: 600,
-//           padding: '10px 0',
-//         },
-//       },
-//     },
-//     MuiTextField: {
-//       styleOverrides: {
-//         root: {
-//           '& .MuiOutlinedInput-root': {
-//             borderRadius: 8,
-//           },
-//         },
-//       },
-//     },
-//   },
-// });
-
-// const LoginPage = () => {
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log('Login attempted with:', { email, password });
-//     // Here you would typically handle the login logic
-//   };
-
-//   return (
-//     <ThemeProvider theme={darkTheme}>
-//       <CssBaseline />
-//       <Box
-//         sx={{
-//           minHeight: '100vh',
-//           display: 'flex',
-//           alignItems: 'center',
-//           background: 'linear-gradient(45deg, #1a1a2e 0%, #16213e 100%)',
-//         }}
-//       >
-//         <Container maxWidth="xs">
-//           <Paper 
-//             elevation={10}
-//             sx={{
-//               p: 4,
-//               display: 'flex',
-//               flexDirection: 'column',
-//               alignItems: 'center',
-//               borderRadius: 4,
-//               backdropFilter: 'blur(10px)',
-//               backgroundColor: 'rgba(22, 33, 62, 0.8)',
-//             }}
-//           >
-//             <Box
-//               component="img"
-//               src="/api/placeholder/100/100"
-//               alt="Logo"
-//               sx={{ width: 80, height: 80, mb: 2 }}
-//             />
-//             <Typography component="h1" variant="h4" gutterBottom>
-//               Welcome Back
-//             </Typography>
-//             <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-//               Please sign in to your account
-//             </Typography>
-//             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
-//               <TextField
-//                 margin="normal"
-//                 required
-//                 fullWidth
-//                 id="email"
-//                 label="Email Address"
-//                 name="email"
-//                 autoComplete="email"
-//                 autoFocus
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 InputProps={{
-//                   startAdornment: (
-//                     <InputAdornment position="start">
-//                       <Email />
-//                     </InputAdornment>
-//                   ),
-//                 }}
-//               />
-//               <TextField
-//                 margin="normal"
-//                 required
-//                 fullWidth
-//                 name="password"
-//                 label="Password"
-//                 type="password"
-//                 id="password"
-//                 autoComplete="current-password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 InputProps={{
-//                   startAdornment: (
-//                     <InputAdornment position="start">
-//                       <Lock />
-//                     </InputAdornment>
-//                   ),
-//                 }}
-//               />
-//               <Button
-//                 type="submit"
-//                 fullWidth
-//                 variant="contained"
-//                 sx={{ mt: 3, mb: 2 }}
-//               >
-//                 Sign In
-//               </Button>
-//               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-//                 <Link href="#" variant="body2" sx={{ color: 'primary.main' }}>
-//                   Forgot password?
-//                 </Link>
-//                 <Link href="#" variant="body2" sx={{ color: 'primary.main' }}>
-//                   Don't have an account? Sign Up
-//                 </Link>
-//               </Box>
-//             </Box>
-//           </Paper>
-//         </Container>
-//       </Box>
-//     </ThemeProvider>
-//   );
-// };
-
-// export default LoginPage;
-
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Button, 
   Container, 
   TextField, 
   Typography, 
-  Link,
   ThemeProvider, 
   createTheme,
   CssBaseline,
@@ -176,6 +14,11 @@ import {
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { styled } from '@mui/system';
+import { Link, useNavigate } from 'react-router-dom';
+import { pages } from '../utils/pagePaths';
+import { loginApi } from '../utils/api'; // Make sure this import is correct
+
+// ... (rest of your imports and styled components)
 
 const darkTheme = createTheme({
   palette: {
@@ -188,14 +31,6 @@ const darkTheme = createTheme({
     },
   },
 });
-
-const StyledForm = styled('form')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(3),
-  width: '90%',
-  margin: '0 auto',
-}));
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: '100%',
@@ -211,6 +46,29 @@ const StyledButton = styled(Button)(({ theme }) => ({
 }));
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    setError(''); // Clear any previous errors
+
+    try {
+      const response = await loginApi(email, password);
+      if (response.error) {
+        console.log(response.message)
+        setError(response.message);
+      } else {
+        // Login successful
+        navigate(pages.stocks);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred during login');
+    }
+  };
+
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -235,9 +93,10 @@ const Login = () => {
               flexDirection: 'column', 
               justifyContent: 'center', 
               height: '100%',
-              paddingTop: (theme) => theme.spacing(6) // Added extra padding at the top
+              paddingTop: (theme) => theme.spacing(6),
+              gap: '30px'
             }}>
-              <StyledForm noValidate>
+              <form onSubmit={handleLogin} style={{display:"flex",flexDirection:'column',gap: '20px'}}>
                 <TextField
                   variant="outlined"
                   required
@@ -246,6 +105,8 @@ const Login = () => {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <TextField
                   variant="outlined"
@@ -256,23 +117,30 @@ const Login = () => {
                   type="password"
                   id="password"
                   autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
+                {error && (
+                  <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+                    {error}
+                  </Typography>
+                )}
                 <StyledButton
                   type="submit"
                   fullWidth
                   variant="contained"
-                  sx={{ backgroundColor: '#0077e5' }}
+                  sx={{ backgroundColor: '#0077e5', mt: 3 }}
                 >
                   Log In
                 </StyledButton>
-              </StyledForm>
+              </form>
             </CardContent>
           </StyledCard>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, width: '100%' }}>
-            <Link href="#" variant="body2">
+            <Link to={pages.forgotpassword} variant="body2">
               Forgot password?
             </Link>
-            <Link href="#" variant="body2">
+            <Link to={pages.signup} variant="body2">
               Don't have an account? Sign Up
             </Link>
           </Box>

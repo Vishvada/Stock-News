@@ -1,3 +1,12 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+html,body {
+    width:100%;
+}
 .product-name{
     margin-top: 5rem;
     text-align: center;
@@ -8,4 +17,9 @@
     text-align: center;
     font-size: medium;
     color:white;  
+}
+
+.page{
+    height: 100vh;
+    width: 100%;
 }
