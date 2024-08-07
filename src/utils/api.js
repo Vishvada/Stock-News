@@ -1,56 +1,69 @@
 import axios from 'axios';
 
-export const loginApi = async (email, password) => {
+const API_BASE_URL = 'http://localhost:3000'; // Adjust this if your server is running on a different port or URL
+
+// Create an axios instance with default config
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // This is equivalent to credentials: 'include'
+});
+
+// Helper function to handle API responses
+const handleResponse = (response) => response.data;
+
+// Function to get user's stocks
+export const getStocksApi = async () => {
   try {
-    const response = await axios.post('http://localhost:3000/login', {
-      email,
-      password
-    }, {
-      withCredentials: true // This is important for maintaining the session
-    });
-    console.log(response.data);
-    return response.data;
+    const response = await axiosInstance.get('/stocks');
+    return handleResponse(response);
   } catch (error) {
-    console.log(error)
-    return {
-        error:true,
-        message:'Login error:'+ (error.message ? error.message :'Unexpected error! kindly login in sometime')
-    }
+    console.error('Error fetching stocks:', error);
+    throw error.response ? error.response.data : error;
   }
 };
 
+// Function to get all available stocks
+export const getAllStocksApi = async () => {
+  try {
+    const response = await axiosInstance.get('/all-stocks');
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error fetching all stocks:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Function to add stocks to user's preferred list
+export const addStocksApi = async (stockIds) => {
+  try {
+    const response = await axiosInstance.post('/add-stocks', { stockIds });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error adding stocks:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Login function
+export const loginApi = async (email, password) => {
+  try {
+    const response = await axiosInstance.post('/login', { email, password });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error during login:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Signup function
 export const signupApi = async (name, email, password) => {
-    try {
-      const response = await axios.post('http://localhost:3000/signup', {
-        name,
-        email,
-        password
-      }, {
-        withCredentials: true
-      });
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-        return {
-            error:true,
-            message:'Signup error:'+ (error.response ? error.response.data : error.message)
-        }
-    }
-  };
+  try {
+    const response = await axiosInstance.post('/signup', { name, email, password });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error during signup:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
 
-  export const getStocksApi = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/stocks', {
-        withCredentials: true
-      });
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-        return {
-            error:true,
-            message:'Fetch stocks error:'+ (error.response ? error.response.data : error.message)
-        }
-    }
-  };
-
-  console.log(await getStocksApi())
+// You can add more API functions here as needed

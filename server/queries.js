@@ -111,10 +111,12 @@ export async function getUser(email) {
   }
 }
 
-// Other functions (addStock, InsertUserStock) remain unchanged
-
 export async function addStock(stockName) {
 	try {
+    let result=await db.query(`SELECT * from stocks where stock = $1`,[stockName]);
+    if(result.rowCount>0){
+      return;
+    }
 		await db.query(
 			"INSERT INTO stocks (stock) VALUES ($1)",
 			[stockName],
@@ -128,28 +130,6 @@ export async function addStock(stockName) {
 		);
 	} catch (error) {
 		console.error(error.message);
-	}
-}
-
-export async function InsertUserStock(stockId, userId) {
-	try {
-		await db.query(
-			"UPDATE users SET stocks = stocks || $1 WHERE id=$2",
-			[stockId, userId],
-			(err, result) => {
-				if (result) {
-					response.error = false;
-					response.message = "Inserted your Preferred stock";
-				} else {
-					response.error = true;
-					response.message =
-						"Unable to insert your preferred stock. please try again.";
-				}
-			}
-		);
-	} catch (error) {
-		response.error = true;
-		response.message = error;
 	}
 }
 
@@ -183,3 +163,43 @@ export async function getUserStocks(email) {
 	  return { error: true, message: error.message };
 	}
   }
+  // ... (previous imports and setup remain the same)
+
+export async function getAllStocks() {
+  try {
+    const result = await db.query("SELECT id, stock FROM stocks");
+    return { error: false, message: result.rows };
+  } catch (err) {
+    console.error("Error in getAllStocks:", err);
+    return { error: true, message: err.message };
+  }
+}
+
+export async function addUserStocks(email, stockIds) {
+  try {
+    const userResult = await db.query(
+      "SELECT id, preferred_stocks FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (!userResult.rows.length) {
+      return { error: true, message: "User not found" };
+    }
+
+    const userId = userResult.rows[0].id;
+    let preferredStocks = userResult.rows[0].preferred_stocks || [];
+
+    // Add new stock IDs to the user's preferred stocks
+    preferredStocks = [...new Set([...preferredStocks, ...stockIds])];
+
+    await db.query(
+      "UPDATE users SET preferred_stocks = $1 WHERE id = $2",
+      [preferredStocks, userId]
+    );
+
+    return { error: false, message: "Stocks added successfully" };
+  } catch (error) {
+    console.error("Error in addUserStocks:", error);
+    return { error: true, message: error.message };
+  }
+}
