@@ -34,7 +34,7 @@ export default function Features(props){
             </button>)}
         </div>
         <div className="image-container">
-            <img src={image} />
+            <img src={image} style={{height:"350px",width:"600px"}}/>
         </div>
     </div>)
 }

@@ -16,7 +16,7 @@
 }
 .text-container {
 	display: flex;
-	width: 50%;
+	width: 40%;
 	flex-direction: column;
 	gap: 0.8rem;
 	justify-content: center;

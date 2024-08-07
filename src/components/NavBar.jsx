@@ -4,6 +4,9 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from './AnimatedButton';
 import '../assets/styles/text-animation.css';
+import { NavLink, useNavigate, useNavigation } from 'react-router-dom';
+import Login from '../screens/Login';
+import { useState } from 'react';
 
 export default function NavBar(props) {
   return (
@@ -12,11 +15,11 @@ export default function NavBar(props) {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            {props.items.map(item=><a key={item.id} href={item.href} className='animate-text' data-text={item.text}>{item.text}</a>)}
+            {props.items.map(item=><NavLink key={item.id} to={item.to} className='animate-text' data-text={item.text}>{item.text}</NavLink>)}
           </Nav>
-          <Button name="Login" classes='outline fill-color'/>
+          <Button name="Login" classes='outline fill-color' to="/login"></Button>
           <NavDropdown.Divider />
-          <Button name="SignUp"classes='filled fill-color'/>
+          <Button name="SignUp"classes='filled fill-color' to='/signup'/>
         </Navbar.Collapse>
       </Container>
     </Navbar>

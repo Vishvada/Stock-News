@@ -1,87 +1,39 @@
-import { useState } from 'react'
 import './App.css'
-import Button from './components/AnimatedButton'
-import RotatingCard from './components/RotatingCard'
-import InfiniteScroller from './components/InfiniteScroller'
-import Login from './screens/Login'
-import NavBar from './components/NavBar'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/styles/styles.css'
-import Features from './components/features'
-import SignUp from './screens/SignUp'
-import ForgotPasswordPage from './screens/ForgotPassword'
-import LoginPage from './screens/Login'
-import AuthPages from './screens/Login'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { pages } from './utils/pagePaths';
+import { lazy, Suspense } from 'react';
+import EmailVerification from './screens/OTP';
+import OtpInput from './screens/OTP';
+import StocksPage from './screens/Stocks';
 
-var images=[
-    {
-      id:0,
-      src:''
-    },
-    {
-      id:1,
-      src:''
-    },
-    {
-      id:2,
-      src:''
-    },
-    {
-      id:3,
-      src:''
-    },
-    {
-      id:4,
-      src:''
-    },
-    {
-      id:5,
-      src:''
-    }
-  ]
+// Lazy load components
+const Home = lazy(() => import('./screens/Home'));
+const Login = lazy(() => import('./screens/Login'));
+const SignUp = lazy(() => import('./screens/SignUp'));
+const ForgotPasswordPage = lazy(() => import('./screens/ForgotPassword'));
+const Learn = lazy(() => import('./screens/Learning'));
+const AboutPage = lazy(() => import('./screens/About'));
 
-const menuItems=[
-    {
-      id:0,
-      text:'Home',
-      href:'#home'
-    },{
-      id:1,
-      text:'Stocks',
-      href:'#stocks'
-    },{
-      id:2,
-      text:'News',
-      href:'#news'
-    },{
-      id:3,
-      text:'About',
-      href:'#about'
-    }
-  ]
-
-  const features=[
-    {
-      id:0,
-      feature:'f1',
-      content:'f1',
-      image:'https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg'
-    },{
-      id:1,
-      feature:'f2',
-      content:'f2',
-      image:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7vnGsgBgV8QW50dp-wZ4GoCNWu4egKYuxAw&s'
-    },{
-      id:2,
-      feature:'f3',
-      content:'f3',
-      image:'https://illustoon.com/photo/7257.png'
-    }
-  ]
+// Loading component
+const Loading = () => <div>Loading...</div>;
 
 function App() {
   return (
-    <ForgotPasswordPage/>
+    <Router>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path={pages.login} element={<Login />} />
+          <Route path={pages.signup} element={<SignUp />} />
+          <Route path={pages.forgotpassword} element={<ForgotPasswordPage />} />
+          <Route path={pages.learn} element={<Learn />} />
+          <Route path={pages.about} element={<AboutPage />} />
+          <Route path={pages.stocks} element={<StocksPage/>}/>
+        </Routes>
+      </Suspense>
+    </Router>
   )
 }
 
