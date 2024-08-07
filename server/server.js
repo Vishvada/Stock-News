@@ -5,7 +5,7 @@ import cors from 'cors'
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import { url } from "./utils/constants.js";
-import { addUser, checkPassword, getUser, getUserStocks } from "./queries.js";
+import { addUser, checkPassword, getUser, getUserStocks, getAllStocks, addUserStocks } from "./queries.js";
 import news from "./utils/scraper.js";
 
 const app = express();
@@ -27,6 +27,42 @@ app.use(passport.session());
 
 const createResponse = (status, error, message) => ({ status, error, message });
 
+
+
+app.get('/all-stocks', async (req, res) => {
+  if (req.isAuthenticated()) {
+    try {
+      let result = await getAllStocks();
+      res.status(200).json(createResponse(url.OK, false, result.message));
+    } catch (error) {
+      console.error('Error fetching all stocks:', error);
+      res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while fetching stocks'));
+    }
+  } else {
+    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+  }
+});
+
+app.post('/add-stocks', async (req, res) => {
+  if (req.isAuthenticated()) {
+    try {
+      const { stockIds } = req.body;
+      let result = await addUserStocks(req.user.email, stockIds);
+      if (result.error) {
+        res.status(400).json(createResponse(url.BAD_REQUEST, true, result.message));
+      } else {
+        res.status(200).json(createResponse(url.OK, false, result.message));
+      }
+    } catch (error) {
+      console.error('Error adding stocks:', error);
+      res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while adding stocks'));
+    }
+  } else {
+    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+  }
+});
+
+
 app.get('/stocks', async (req, res) => {
   if (req.isAuthenticated()) {
     try {
@@ -45,7 +81,7 @@ app.get('/stocks', async (req, res) => {
       res.status(500).json(createResponse(url.INTERNAL_SERVER_ERROR, true, 'An error occurred while fetching stocks'));
     }
   } else {
-    res.status(403).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
+    res.status(200).json(createResponse(url.FORBIDDEN, true, 'Sign In required'));
   }
 });
 
