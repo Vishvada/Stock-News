@@ -16,7 +16,6 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { styled } from '@mui/system';
 import {Link} from 'react-router-dom'
 import { pages } from '../utils/pagePaths';
-import { forgotPassword } from '../utils/auth';
 
 const darkTheme = createTheme({
   palette: {

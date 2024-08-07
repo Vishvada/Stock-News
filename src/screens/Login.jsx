@@ -136,10 +136,10 @@ const Login = () => {
               </form>
             </CardContent>
           </StyledCard>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, width: '100%' }}>
-            <Link to={pages.forgotpassword} variant="body2">
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, width: '100%' }}>
+            {/* <Link to={pages.forgotpassword} variant="body2">
               Forgot password?
-            </Link>
+            </Link> */}
             <Link to={pages.signup} variant="body2">
               Don't have an account? Sign Up
             </Link>
